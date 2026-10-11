@@ -1,0 +1,6 @@
+{
+  "name": "Definitely Not A Bug",
+  "description": "It's not a bug. It's a feature. An intentionally badly designed yet hilarious, fully playable cartoon platformer for Game Vita 5.0.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

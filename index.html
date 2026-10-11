@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Definitely Not A Bug</title>
+    <meta name="description" content="It's not a bug. It's a feature. An intentionally badly designed yet hilarious, fully playable cartoon platformer for Game Vita 5.0." />
+    <meta property="og:title" content="Definitely Not A Bug" />
+    <meta property="og:description" content="It's not a bug. It's a feature. An intentionally badly designed yet hilarious, fully playable cartoon platformer for Game Vita 5.0." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app-container">
+      <div class="cyber-grid"></div>
+
+      <!-- Main Game Frame -->
+      <main id="game-frame" role="application" aria-label="Definitely Not A Bug Game Frame">
+        <!-- Render Canvases -->
+        <canvas id="game-canvas" width="960" height="540"></canvas>
+        <canvas id="confetti-canvas" width="960" height="540"></canvas>
+
+        <!-- Top HUD -->
+        <header id="hud-overlay" aria-label="Game Heads Up Display">
+          <div class="hud-left">
+            <div class="hud-pill" id="hud-level-tag">
+              <span id="hud-level-text">LEVEL 1: THE TUTORIAL LIES</span>
+            </div>
+            <div class="hud-pill highlight" id="hud-death-tag" title="Total unexpected learning experiences">
+              <span>💀 FAILS:</span>
+              <span id="hud-death-count">0</span>
+            </div>
+            <div class="hud-pill yellow" id="hud-coins-tag">
+              <span>🪙 BUGCOINS:</span>
+              <span id="hud-coins-count">0</span>
+            </div>
+            <div class="hud-pill cyan" id="hud-trust-tag" title="Player Trust Meter - Measures how much you trust BUGGY">
+              <span>🧠 TRUST:</span>
+              <span id="hud-trust-label">Suspiciously Trusting</span>
+              <span id="hud-trust-bar"><span id="hud-trust-fill" style="width: 50%;"></span></span>
+            </div>
+          </div>
+
+          <div class="hud-right">
+            <div class="hud-pill" id="hud-score-tag">
+              <span>SCORE:</span>
+              <span id="hud-score-val">-$42.00</span>
+            </div>
+            <button class="hud-btn" id="btn-touch-toggle" title="Toggle On-Screen Touch Controls" aria-label="Toggle Touch Controls">
+              📱
+            </button>
+            <button class="hud-btn" id="btn-fullscreen-toggle" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
+              ⛶
+            </button>
+            <button class="hud-btn" id="btn-sound-toggle" title="Toggle Sound (M)" aria-label="Toggle Sound">
+              🔊
+            </button>
+            <button class="hud-btn" id="btn-pause-toggle" title="Pause Game (ESC)" aria-label="Pause Game">
+              ⏸️
+            </button>
+          </div>
+        </header>
+
+        <!-- Sarcastic Dialogue Banner -->
+        <aside id="narrator-banner" class="hidden" role="status" aria-live="polite">
+          <div class="buggy-avatar" id="narrator-avatar">😈</div>
+          <div class="narrator-content">
+            <div class="narrator-title" id="narrator-author">BUGGY (AI QA Director)</div>
+            <div class="narrator-text" id="narrator-msg">
+              "Welcome to the only 100% certified bug-free platformer!"
+            </div>
+          </div>
+        </aside>
+
+        <!-- Inversion Alert Banner -->
+        <div id="inversion-alert" role="alert">
+          ⚠️ BRAIN INVERSION PROTOCOL ACTIVE! [ LEFT ⇄ RIGHT ] ⚠️
+        </div>
+
+        <!-- Touch Controls for mobile/touch screens -->
+        <div id="touch-controls" aria-label="On-Screen Touch Controls">
+          <!-- Left side: Movement D-Pad -->
+          <div class="touch-cluster dpad-cluster">
+            <button class="touch-btn dpad-btn" id="touch-left" aria-label="Move Left">
+              <span class="touch-icon">◀</span>
+              <span class="touch-sublabel">LEFT</span>
+            </button>
+            <button class="touch-btn dpad-btn" id="touch-right" aria-label="Move Right">
+              <span class="touch-icon">▶</span>
+              <span class="touch-sublabel">RIGHT</span>
+            </button>
+          </div>
+
+          <!-- Middle side: Quick utilities for mobile -->
+          <div class="touch-cluster middle-cluster">
+            <button class="touch-btn util-btn" id="touch-restart" aria-label="Quick Restart Level">
+              <span class="touch-icon">🔄</span>
+              <span class="touch-sublabel">RETRY</span>
+            </button>
+          </div>
+
+          <!-- Right side: Actions & Jump -->
+          <div class="touch-cluster action-cluster">
+            <button class="touch-btn action-btn" id="touch-action" aria-label="Interact or Switch">
+              <span class="touch-icon">⚡</span>
+              <span class="touch-sublabel">ACTION</span>
+            </button>
+            <button class="touch-btn jump-btn" id="touch-jump" aria-label="Jump">
+              <span class="touch-icon">▲</span>
+              <span class="touch-sublabel">JUMP</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Achievement Unlock Toast -->
+        <div id="achievement-toast" role="status">
+          <div class="achievement-icon" id="toast-icon">🏆</div>
+          <div class="achievement-info">
+            <h4 id="toast-title">Achievement Unlocked!</h4>
+            <p id="toast-desc">You did something questionable.</p>
+          </div>
+        </div>
+
+        <!-- =================== MODALS & SCREENS =================== -->
+
+        <!-- 1. Main Menu Modal -->
+        <section id="modal-main-menu" class="modal-overlay" aria-labelledby="main-menu-title">
+          <div class="modal-card">
+            <h1 id="main-menu-title" class="game-title">DEFINITELY NOT A BUG</h1>
+            <div class="game-subtitle">"The game that hates you."</div>
+            <div class="badge-tag">CERTIFIED BUG-FREE v0.0.1b • QA TESTER: ONE POTATO</div>
+
+            <nav class="menu-buttons" aria-label="Main Menu Navigation">
+              <button class="btn btn-primary" id="btn-menu-play">
+                🎮 PLAY GAME
+              </button>
+              <button class="btn" id="btn-menu-how">
+                📖 HOW TO PLAY (OR CRY)
+              </button>
+              <button class="btn" id="btn-menu-settings">
+                ⚙️ BAD SETTINGS
+              </button>
+              <button class="btn btn-secondary" id="btn-menu-achievements">
+                🏆 SILLY ACHIEVEMENTS
+              </button>
+              <button class="btn" id="btn-menu-credits">
+                📜 QUESTIONABLE CREDITS
+              </button>
+            </nav>
+          </div>
+        </section>
+
+        <!-- 2. Pre-game Humorous Warning Modal -->
+        <section id="modal-warning" class="modal-overlay hidden" aria-labelledby="warning-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="warning-title" style="color: var(--accent-yellow);">⚠️ HEALTH & SANITY ADVISORY</h2>
+            </div>
+            <div class="modal-body">
+              <p style="margin-bottom: 12px; font-weight: 700;">
+                "This game has been tested by absolutely nobody. Enjoy!"
+              </p>
+              <div class="tip-box">
+                By clicking proceed, you waive all rights to blame:
+                <br>• Reversed physics laws
+                <br>• Lying floating tutorial signs
+                <br>• Disappearing ground surfaces
+                <br>• Sarcastic computers named BUGGY
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btn-warning-accept">
+              🔥 I ACCEPT MY FATE
+            </button>
+          </div>
+        </section>
+
+        <!-- 3. How to Play Modal -->
+        <section id="modal-how-to-play" class="modal-overlay hidden" aria-labelledby="how-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="how-title">HOW TO PLAY (LAPTOP & MOBILE)</h2>
+            </div>
+            <div class="modal-body">
+              <div class="platform-tabs" role="tablist">
+                <button class="platform-tab active" id="tab-controls-lap" role="tab" aria-selected="true">💻 Laptop / PC</button>
+                <button class="platform-tab" id="tab-controls-mob" role="tab" aria-selected="false">📱 Mobile / Touch</button>
+              </div>
+
+              <div id="controls-panel-lap" class="controls-tab-content">
+                <div class="controls-grid">
+                  <div class="control-item">
+                    <span>Move Left / Right</span>
+                    <span class="key-badge">A / D or ◀ ▶</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Jump</span>
+                    <span class="key-badge">W / SPACE / ▲</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Interact / Switch</span>
+                    <span class="key-badge">E</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Quick Restart</span>
+                    <span class="key-badge">R</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Pause Menu</span>
+                    <span class="key-badge">ESC</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Mute Sound</span>
+                    <span class="key-badge">M</span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="controls-panel-mob" class="controls-tab-content hidden">
+                <div class="controls-grid">
+                  <div class="control-item">
+                    <span>Left Thumb Movement</span>
+                    <span class="key-badge">◀ LEFT &nbsp; RIGHT ▶</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Jump Button</span>
+                    <span class="key-badge">▲ Big Pink Jump</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Interact / Action</span>
+                    <span class="key-badge">⚡ Cyan Action</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Instant Retry</span>
+                    <span class="key-badge">🔄 Quick Retry</span>
+                  </div>
+                  <div class="control-item">
+                    <span>HUD Shortcuts</span>
+                    <span class="key-badge">⏸️ Pause &nbsp; ⛶ Fullscreen &nbsp; 🔊 Audio</span>
+                  </div>
+                  <div class="control-item">
+                    <span>Touch On/Off</span>
+                    <span class="key-badge">📱 Top HUD Button</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tip-box">
+                💡 <strong>PRO-TIP #1:</strong> If a floating sign promises you can fly, remember: you are not a bird.
+                <br>💡 <strong>PRO-TIP #2:</strong> Control reversals are not bugs. They are "character building exercises."
+                <br>💡 <strong>PRO-TIP #3:</strong> Tap the <strong>📱 HUD button</strong> at any time on laptop to practice touch mode or toggle on/off!
+              </div>
+            </div>
+            <button class="btn" id="btn-how-back">BACK TO MENU</button>
+          </div>
+        </section>
+
+        <!-- 4. Settings Modal -->
+        <section id="modal-settings" class="modal-overlay hidden" aria-labelledby="settings-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="settings-title">SUSPICIOUS SETTINGS</h2>
+            </div>
+            <div class="modal-body">
+              <div class="settings-group">
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Sound Effects</div>
+                    <div class="setting-desc">Web Audio synthesized bleeps & boops</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="setting-sound" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Volume Level</div>
+                    <div class="setting-desc">From Whisper to Emotional Damage</div>
+                  </div>
+                  <input type="range" id="setting-volume" min="0" max="100" value="70">
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Screen Shake</div>
+                    <div class="setting-desc">Exaggerated cartoon explosions</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="setting-shake" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Difficulty / Trick Frequency</div>
+                    <div class="setting-desc">Controls how often BUGGY pulls pranks</div>
+                  </div>
+                  <select id="setting-difficulty" style="background:#111524; color:#fff; border:1px solid #3d4a7a; border-radius:6px; padding:6px 10px; font-weight:700;">
+                    <option value="normal">Buggy (Standard Annoyance)</option>
+                    <option value="chaotic">Catastrophic (Pure Agony)</option>
+                  </select>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Touch Controls Overlay</div>
+                    <div class="setting-desc">Show on-screen mobile D-Pad buttons</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="setting-touch">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Touch Button Size</div>
+                    <div class="setting-desc">Adjust touch button scale for your fingers</div>
+                  </div>
+                  <select id="setting-touch-size" style="background:#111524; color:#fff; border:1px solid #3d4a7a; border-radius:6px; padding:6px 10px; font-weight:700;">
+                    <option value="compact">Compact (Laptop/Tablet)</option>
+                    <option value="normal" selected>Normal (Standard Phone)</option>
+                    <option value="large">Extra Large (Comfort)</option>
+                  </select>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Haptic / Touch Pulse</div>
+                    <div class="setting-desc">Vibrate device on jumps, bumps & traps</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="setting-haptics" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Fake Game Over Prank</div>
+                    <div class="setting-desc">Allow BUGGY to mock you with fake game over screens</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="setting-fake-gameover" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-danger" id="btn-settings-reset" style="font-size: 13px;">RESET PROGRESS</button>
+              <button class="btn btn-primary" id="btn-settings-save">SAVE & CLOSE</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. Achievements Modal -->
+        <section id="modal-achievements" class="modal-overlay hidden" aria-labelledby="achievements-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="achievements-title">HALL OF ACCIDENTAL GLORY</h2>
+            </div>
+            <div class="modal-body">
+              <div class="achievements-grid" id="achievements-container">
+                <!-- Dynamically filled by JS -->
+              </div>
+            </div>
+            <button class="btn" id="btn-achievements-back">CLOSE</button>
+          </div>
+        </section>
+
+        <!-- 6. Credits Modal -->
+        <section id="modal-credits" class="modal-overlay hidden" aria-labelledby="credits-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="credits-title">DISCREDITABLE CREDITS</h2>
+            </div>
+            <div class="modal-body">
+              <div class="tip-box">
+                <strong>GAME VITA 5.0 ENTRY:</strong>
+                <br>Theme: <em>"WORST GAME WINS"</em>
+                <br>Project: <strong>DEFINITELY NOT A BUG</strong>
+                <br>Team: <strong>[YOUR TEAM NAME]</strong>
+              </div>
+              <div style="font-size: 13px; line-height: 1.8;">
+                <p>👨‍💻 <strong>Lead Programmer:</strong> A cat walking across the keyboard at 3 AM</p>
+                <p>🥔 <strong>Chief QA Inspector:</strong> One sweet Russet Potato (found 0 bugs)</p>
+                <p>🎨 <strong>Art Direction:</strong> MS Paint nostalgia & Canvas 2D vectors</p>
+                <p>🔊 <strong>Sound Design:</strong> Synthesized Web Audio square waves & sadness</p>
+                <p>📐 <strong>Physics Consultant:</strong> Sir Isaac Newton's Worst Nightmare</p>
+                <p>😈 <strong>Voice of BUGGY:</strong> A dishonest toaster running v0.0.1b</p>
+              </div>
+            </div>
+            <button class="btn" id="btn-credits-back">CLOSE</button>
+          </div>
+        </section>
+
+        <!-- 7. Pause Modal -->
+        <section id="modal-pause" class="modal-overlay hidden" aria-labelledby="pause-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="pause-title">GAME PAUSED</h2>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+              <p>Taking a well-deserved break from suffering?</p>
+              <p style="color: var(--text-muted); font-size: 12px; margin-top: 6px;">
+                "Did you know? Pausing the game gives BUGGY more time to plan your demise."
+              </p>
+            </div>
+            <nav class="menu-buttons" aria-label="Pause Menu Navigation">
+              <button class="btn btn-primary" id="btn-pause-resume">▶ RESUME SUFFERING</button>
+              <button class="btn" id="btn-pause-restart">🔄 RESTART LEVEL (R)</button>
+              <button class="btn" id="btn-pause-settings">⚙️ SETTINGS</button>
+              <button class="btn btn-danger" id="btn-pause-menu">🏠 QUIT TO MAIN MENU</button>
+            </nav>
+          </div>
+        </section>
+
+        <!-- 8. Death / Failure Modal -->
+        <section id="modal-death" class="modal-overlay hidden" aria-labelledby="death-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="death-title" style="color: var(--primary);">YOU DIED (AS EXPECTED)</h2>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+              <div style="font-size: 40px; margin-bottom: 10px;">💀💥</div>
+              <p id="death-reason" style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px;">
+                "Cause of Death: Stepped on a red triangle with bad intentions."
+              </p>
+              <div class="tip-box" id="death-bonus-box">
+                +500 Emotional Damage Bonus! Points: <span id="death-score-bonus">-$999</span>
+              </div>
+            </div>
+            <nav class="menu-buttons" aria-label="Retry Navigation">
+              <button class="btn btn-primary" id="btn-death-retry">
+                🔄 RETRY INSTANTLY (SPACE / R)
+              </button>
+              <button class="btn" id="btn-death-menu">
+                🏠 GIVE UP TO MENU
+              </button>
+            </nav>
+          </div>
+        </section>
+
+        <!-- 8B. Humorous Fake Game Over Overlay (Feature Three) -->
+        <div id="fake-game-over" class="hidden" role="alert" aria-live="assertive">
+          <div class="fake-go-card">
+            <h1 class="fake-go-title">GAME OVER</h1>
+            <h2 class="fake-go-subtitle">YOUR SKILLS HAVE LEFT THE CHAT</h2>
+            <div class="fake-go-buggy">
+              <span class="fake-go-avatar">😈</span>
+              <span class="fake-go-dialogue">"Wait. You're still here?"</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. Level Complete Modal -->
+        <section id="modal-level-complete" class="modal-overlay hidden" aria-labelledby="level-complete-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="level-complete-title" style="color: var(--accent-green);">🎉 LEVEL COMPLETED!</h2>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+              <div id="level-complete-quote" style="font-size: 15px; font-weight: 700; margin-bottom: 14px;">
+                "Wait, you actually made it through? Our QA potato owes me five bucks."
+              </div>
+
+              <!-- Funny Trust Report (Feature Eight) -->
+              <div class="trust-report-card">
+                <div class="trust-report-header">
+                  <span>📊 OFFICIAL TRUST AUDIT REPORT</span>
+                  <span id="trust-report-badge">CERTIFIED SUSPICIOUS</span>
+                </div>
+                <div class="trust-report-body" id="trust-report-text">
+                  You fell for 2 lying tutorial signs and inspected the floor 4 times.
+                </div>
+                <div class="trust-report-score">
+                  Trust Rating: <strong id="trust-report-rating">Questionable Judgment (42%)</strong>
+                </div>
+              </div>
+
+              <div class="tip-box">
+                <div style="font-family: var(--font-mono); font-size: 12px; margin-bottom: 6px;">
+                  Compiling new bugs for next level...
+                </div>
+                <div style="width: 100%; height: 10px; background: #0c0f1c; border-radius: 5px; overflow: hidden; border: 1px solid #34406a;">
+                  <div style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--secondary), var(--primary));"></div>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btn-next-level">
+              🚀 PROCEED TO NEXT LEVEL
+            </button>
+          </div>
+        </section>
+
+        <!-- 10. Normal Victory Ending Modal -->
+        <section id="modal-victory" class="modal-overlay hidden" aria-labelledby="victory-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="victory-title" style="color: var(--accent-yellow);">👑 CONGRATULATIONS! YOU WON?!</h2>
+            </div>
+            <div class="modal-body">
+              <div style="text-align: center; margin-bottom: 12px;">
+                <div style="font-size: 42px;">🏆🎉🎊</div>
+                <p style="font-size: 15px; font-weight: 800; color: #fff; margin-top: 6px;">
+                  "Wait. You actually beat BUGGY and beat the game?!"
+                </p>
+                <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">
+                  ERROR 0x7E: Player happiness exceeds permitted limits.
+                </p>
+              </div>
+
+              <div class="tip-box" style="font-family: var(--font-mono); font-size: 12px; text-align: left;">
+                <strong>PATCH NOTES v1.0.0:</strong>
+                <br>• Fixed absolutely nothing.
+                <br>• Increased villain confidence by 900%.
+                <br>• Accidentally promoted the player to developer.
+              </div>
+
+              <div style="margin-top: 10px; font-weight: 800; color: var(--accent-yellow); font-size: 14px; text-align: center;">
+                "WAIT... YOU ACTUALLY BEAT THE GAME?"
+              </div>
+
+              <div class="controls-grid" style="margin-top: 10px;">
+                <div class="control-item">
+                  <span>Total Failures:</span>
+                  <span class="key-badge" id="victory-stat-deaths">0</span>
+                </div>
+                <div class="control-item">
+                  <span>BugCoins Found:</span>
+                  <span class="key-badge" id="victory-stat-coins">0</span>
+                </div>
+              </div>
+            </div>
+            <nav class="menu-buttons" aria-label="Victory Options">
+              <button class="btn btn-primary" id="btn-victory-replay">
+                🔁 PLAY AGAIN (FOR SOME REASON)
+              </button>
+              <button class="btn btn-secondary" id="btn-victory-achievements">
+                🏆 VIEW ACHIEVEMENTS
+              </button>
+              <button class="btn" id="btn-victory-menu">
+                🏠 RETURN TO MAIN MENU
+              </button>
+            </nav>
+          </div>
+        </section>
+
+        <!-- 11. Secret Ending Modal ("QA Engineer of the Year") -->
+        <section id="modal-secret-ending" class="modal-overlay hidden spreadsheet-mode" aria-labelledby="secret-title">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2 id="secret-title" style="color: #004578;">📋 ISO-9001 ENTERPRISE QUALITY AUDIT</h2>
+            </div>
+            <div class="modal-body">
+              <div style="background: #e8f4fd; border: 1px solid #b4d6fa; padding: 10px; margin-bottom: 12px; font-family: monospace;">
+                <strong>[STATUS: SECRET MAINTENANCE SWITCH ACTIVATED]</strong>
+                <br>All bugs, features, jokes, and inverted controls have been forcibly suppressed.
+              </div>
+              
+              <div style="font-size: 13px; line-height: 1.6; color: #222;">
+                <p><strong>BUGGY's Final Words:</strong></p>
+                <blockquote style="font-style: italic; color: #b71c1c; margin: 8px 0; padding-left: 10px; border-left: 3px solid #b71c1c;">
+                  "NOOOOO! WHAT HAVE YOU DONE?! You disabled the bugs! Without bugs, we're just an empty spreadsheet! We have no soul! You turned an artistic indie disaster into corporate software!!"
+                </blockquote>
+                <p style="margin-top: 10px;">
+                  🌟 <strong>SECRET ACHIEVEMENT UNLOCKED:</strong>
+                  <br><span style="font-weight: 800; color: #0078d7;">"QA ENGINEER OF THE YEAR"</span>
+                  <br>You discovered the hidden maintenance hatch, outsmarted the system, and proved that every bug is just waiting for a true tester.
+                </p>
+              </div>
+
+              <div style="margin-top: 14px; padding: 8px; border: 2px dashed #0078d7; text-align: center; font-weight: bold; color: #0078d7;">
+                OFFICIAL CERTIFICATE: 100% PROVEN POTATO-FREE SOFTWARE
+              </div>
+            </div>
+            <nav class="menu-buttons">
+              <button class="btn" id="btn-secret-menu">
+                RETURN TO MENU (RESTORE CHAOS)
+              </button>
+            </nav>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Main Game Script -->
+    <script type="module" src="./game.js"></script>
+  </body>
+</html>
